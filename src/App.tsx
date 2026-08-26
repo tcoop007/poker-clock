@@ -30,6 +30,34 @@ function App() {
   const lastChimeTimeRef = useRef(0)
   const lastSecondaryChimeTimeRef = useRef(0)
 
+  // Wake Lock ref
+  const wakeLockRef = useRef<any>(null)
+
+  // Request wake lock to keep screen on during countdown
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen')
+        console.log('Wake Lock acquired')
+      }
+    } catch (error) {
+      console.error('Failed to acquire wake lock:', error)
+    }
+  }
+
+  // Release wake lock
+  const releaseWakeLock = async () => {
+    try {
+      if (wakeLockRef.current) {
+        await wakeLockRef.current.release()
+        wakeLockRef.current = null
+        console.log('Wake Lock released')
+      }
+    } catch (error) {
+      console.error('Failed to release wake lock:', error)
+    }
+  }
+
   // Play chime sound at timer end
   const playTimerChime = () => {
     try {
@@ -154,6 +182,38 @@ function App() {
       }
     }
   }, [secondaryTimeLeft, isSecondaryRunning, isInitialized])
+
+  // Manage wake lock for main timer
+  useEffect(() => {
+    if (isRunning) {
+      requestWakeLock()
+    } else {
+      releaseWakeLock()
+    }
+  }, [isRunning])
+
+  // Manage wake lock for secondary timer
+  useEffect(() => {
+    if (isSecondaryRunning) {
+      requestWakeLock()
+    } else if (!isRunning) {
+      releaseWakeLock()
+    }
+  }, [isSecondaryRunning, isRunning])
+
+  // Handle page visibility change - reacquire wake lock if needed
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.hidden) {
+        await releaseWakeLock()
+      } else if (isRunning || isSecondaryRunning) {
+        await requestWakeLock()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [isRunning, isSecondaryRunning])
 
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
