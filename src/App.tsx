@@ -32,16 +32,36 @@ function App() {
 
   // Wake Lock ref
   const wakeLockRef = useRef<any>(null)
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // Request wake lock to keep screen on during countdown
   const requestWakeLock = async () => {
     try {
+      // Try native Wake Lock API (Chrome, Edge, Android)
       if ('wakeLock' in navigator) {
         wakeLockRef.current = await (navigator as any).wakeLock.request('screen')
-        console.log('Wake Lock acquired')
+        console.log('Wake Lock acquired (native)')
+        return
       }
     } catch (error) {
-      console.error('Failed to acquire wake lock:', error)
+      console.error('Failed to acquire native wake lock:', error)
+    }
+
+    // iOS fallback: use silent audio to prevent sleep
+    // This is a known technique to keep iOS screen on during timer
+    try {
+      if (!silentAudioRef.current) {
+        // Create a silent audio element
+        const audio = new Audio()
+        audio.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='
+        audio.loop = true
+        audio.volume = 0
+        audio.play().catch(err => console.log('Could not auto-play silent audio:', err))
+        silentAudioRef.current = audio
+        console.log('Wake Lock fallback activated (silent audio)')
+      }
+    } catch (error) {
+      console.error('Failed to activate wake lock fallback:', error)
     }
   }
 
@@ -51,10 +71,17 @@ function App() {
       if (wakeLockRef.current) {
         await wakeLockRef.current.release()
         wakeLockRef.current = null
-        console.log('Wake Lock released')
+        console.log('Wake Lock released (native)')
       }
     } catch (error) {
-      console.error('Failed to release wake lock:', error)
+      console.error('Failed to release native wake lock:', error)
+    }
+
+    // Stop silent audio fallback
+    if (silentAudioRef.current) {
+      silentAudioRef.current.pause()
+      silentAudioRef.current = null
+      console.log('Wake Lock fallback stopped')
     }
   }
 
