@@ -29,7 +29,6 @@ function App() {
   // Refs to prevent chime from playing multiple times
   const lastChimeTimeRef = useRef(0)
   const lastSecondaryChimeTimeRef = useRef(0)
-  const lastChimeTimerIndexRef = useRef(-1)
 
   // Play chime sound at timer end
   const playTimerChime = () => {
@@ -91,7 +90,7 @@ function App() {
   }, [timers, isInitialized])
 
   useEffect(() => {
-    let interval: NodeJS.Timeout
+    let interval: ReturnType<typeof setInterval>
     
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
@@ -115,32 +114,20 @@ function App() {
     return () => clearInterval(interval)
   }, [isRunning, timeLeft, currentTimerIndex, timers])
 
-  // Play chime when timer ends and transitions to next
+  // Play chime when timer ends
   useEffect(() => {
-    if (isInitialized && currentTimerIndex > lastChimeTimerIndexRef.current) {
-      const now = Date.now()
-      if (now - lastChimeTimeRef.current > 500) {
-        lastChimeTimeRef.current = now
-        lastChimeTimerIndexRef.current = currentTimerIndex
-        playTimerChime()
-      }
-    }
-  }, [currentTimerIndex, isInitialized])
-
-  // Play chime when final timer ends
-  useEffect(() => {
-    if (timeLeft === 0 && currentTimerIndex === timers.length - 1 && isInitialized) {
+    if (timeLeft === 0 && isRunning === false && isInitialized) {
       const now = Date.now()
       if (now - lastChimeTimeRef.current > 500) {
         lastChimeTimeRef.current = now
         playTimerChime()
       }
     }
-  }, [timeLeft, currentTimerIndex, timers.length, isInitialized])
+  }, [timeLeft, isRunning, isInitialized])
 
   // Secondary timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout
+    let interval: ReturnType<typeof setInterval>
     
     if (isSecondaryRunning && secondaryTimeLeft > 0) {
       interval = setInterval(() => {
@@ -177,7 +164,6 @@ function App() {
     setIsRunning(false)
     setCurrentTimerIndex(0)
     setTimeLeft(timers[0]?.duration || 20 * 60)
-    lastChimeTimerIndexRef.current = -1
   }
 
   const handleSkipTimer = () => {
