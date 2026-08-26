@@ -8,8 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
-dist-ssr
+# dist  # Uncommented to allow deploying built files to GitHub Pages
+# dist-ssr
 *.local
 
 # Editor directories and files
