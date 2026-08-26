@@ -199,6 +199,17 @@ function App() {
     return () => clearInterval(interval)
   }, [isSecondaryRunning, secondaryTimeLeft])
 
+  // Play chime when main timer ends
+  useEffect(() => {
+    if (timeLeft === 1 && isRunning && isInitialized) {
+      const now = Date.now()
+      if (now - lastChimeTimeRef.current > 500) {
+        lastChimeTimeRef.current = now
+        playTimerChime()
+      }
+    }
+  }, [timeLeft, isRunning, isInitialized])
+
   // Play chime when secondary timer ends
   useEffect(() => {
     if (secondaryTimeLeft === 0 && isSecondaryRunning === false && isInitialized) {
