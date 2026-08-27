@@ -171,7 +171,7 @@ function App() {
 
   // Play chime when timer ends
   useEffect(() => {
-    if (timeLeft === 0 && isRunning === false && isInitialized) {
+    if (timeLeft === 2 && isRunning === false && isInitialized) {
       const now = Date.now()
       if (now - lastChimeTimeRef.current > 500) {
         lastChimeTimeRef.current = now
@@ -184,7 +184,7 @@ function App() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>
     
-    if (isSecondaryRunning && secondaryTimeLeft > 0) {
+    if (isSecondaryRunning && secondaryTimeLeft > 2) {
       interval = setInterval(() => {
         setSecondaryTimeLeft(prev => {
           if (prev <= 1) {
