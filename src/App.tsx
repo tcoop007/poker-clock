@@ -105,13 +105,13 @@ function App() {
 
       // Three short beeps
       for (let i = 0; i < 3; i++) {
-        const beepStart = now + i * 0.55
+        const beepStart = now + i * 0.80
         gainNode.gain.setValueAtTime(volume, beepStart)
         gainNode.gain.setValueAtTime(0, beepStart + 0.2)
       }
 
       // One long beep
-      const longBeepStart = now + 3 * 0.55
+      const longBeepStart = now + 3 * 0.80
       gainNode.gain.setValueAtTime(volume, longBeepStart)
       gainNode.gain.setValueAtTime(0, longBeepStart + 0.7)
 
