@@ -169,22 +169,11 @@ function App() {
     return () => clearInterval(interval)
   }, [isRunning, timeLeft, currentTimerIndex, timers])
 
-  // Play chime when timer ends
-  useEffect(() => {
-    if (timeLeft === 2 && isRunning === false && isInitialized) {
-      const now = Date.now()
-      if (now - lastChimeTimeRef.current > 500) {
-        lastChimeTimeRef.current = now
-        playTimerChime()
-      }
-    }
-  }, [timeLeft, isRunning, isInitialized])
-
   // Secondary timer effect
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>
     
-    if (isSecondaryRunning && secondaryTimeLeft > 2) {
+    if (isSecondaryRunning && secondaryTimeLeft > 0) {
       interval = setInterval(() => {
         setSecondaryTimeLeft(prev => {
           if (prev <= 1) {
@@ -265,12 +254,13 @@ function App() {
   }
 
   const handleSkipTimer = () => {
-    setIsRunning(false)
     if (currentTimerIndex < timers.length - 1) {
       setCurrentTimerIndex(currentTimerIndex + 1)
       setTimeLeft(timers[currentTimerIndex + 1].duration)
+      // Keep running if we were already running
     } else {
-      // Already on last timer, just end it
+      // Already on last timer, stop and end it
+      setIsRunning(false)
       setTimeLeft(0)
     }
   }
